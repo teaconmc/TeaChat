@@ -1,0 +1,21 @@
+name: test-build
+on:
+  push:
+    paths:
+      - "src/**"
+      - "build.gradle"
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+      - name: Apply Cache
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: $${{ runner.os }}-gradle
+      - name: Run test
+        run: ./gradlew test
