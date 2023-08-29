@@ -2,6 +2,7 @@ package org.teacon.teachat;
 
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.LuckPermsProvider;
+import net.luckperms.api.cacheddata.CachedMetaData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.ComponentContents;
@@ -11,8 +12,12 @@ import net.minecraftforge.event.entity.player.PlayerEvent;
 import net.minecraftforge.eventbus.api.SubscribeEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class PlayerPrefixAndSuffix {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(PlayerPrefixAndSuffix.class);
 
     @SubscribeEvent
     public static void formatName(PlayerEvent.NameFormat event) {
@@ -20,9 +25,18 @@ public class PlayerPrefixAndSuffix {
         var player = event.getEntity();
         var lpUser = theApi.getUserManager().getUser(player.getGameProfile().getId());
         if (lpUser == null) {
+            LOGGER.error("Player " + player.getGameProfile().getId() + " does not have LuckPerm player data, skipping");
             return;
         }
-        var userMeta = lpUser.getCachedData().getMetaData();
+        CachedMetaData userMeta = null;
+        try {
+            userMeta = lpUser.getCachedData().getMetaData();
+        } catch (Exception e) {
+            LOGGER.error("Failed to retrieve LuckPerm metadata for player " + player.getGameProfile().getId(), e);
+        }
+        if (userMeta == null) {
+            return;
+        }
         var prefix = userMeta.getPrefix();
         if (prefix != null) {
             player.getPrefixes().add(parseLegacy(prefix));
