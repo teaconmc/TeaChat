@@ -15,7 +15,7 @@ description="Add prefixes and suffixes from LuckPerms to player display names."
 
 [[dependencies.tea_chat]]
 modId="luckperms"
-mandatory=false
+type="optional"
 versionRange="[1.18,)"
 ordering="AFTER"
 side="SERVER"
