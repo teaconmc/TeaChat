@@ -1,19 +1,16 @@
 modLoader="javafml"
 
-loaderVersion="[40,)"
+loaderVersion="[1,)"
 
 license="BSD-3-Clause"
 
 [[mods]]
 modId="tea_chat"
-version="${file.jarVersion}"
+version="${mod_version}"
 displayName="TeaChat"
-displayTest="IGNORE_SERVER_VERSION"
-
 # We will come back later.
 credits=""
 authors="3TUSK"
-
 description="Add prefixes and suffixes from LuckPerms to player display names."
 
 [[dependencies.tea_chat]]

@@ -5,11 +5,10 @@ import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.cacheddata.CachedMetaData;
 import net.minecraft.ChatFormatting;
 import net.minecraft.network.chat.Component;
-import net.minecraft.network.chat.ComponentContents;
 import net.minecraft.network.chat.MutableComponent;
 import net.minecraft.network.chat.Style;
-import net.minecraftforge.event.entity.player.PlayerEvent;
-import net.minecraftforge.eventbus.api.SubscribeEvent;
+import net.neoforged.bus.api.SubscribeEvent;
+import net.neoforged.neoforge.event.entity.player.PlayerEvent;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.slf4j.Logger;
@@ -48,7 +47,7 @@ public class PlayerPrefixAndSuffix {
     }
 
     public static @NotNull MutableComponent parseLegacy(@NotNull String textWithLegacyFormat) {
-        MutableComponent result = MutableComponent.create(ComponentContents.EMPTY);
+        MutableComponent result = Component.empty();
         Style currentStyle = Style.EMPTY;
         final int maxLen = textWithLegacyFormat.length();
         int cursor = 0;

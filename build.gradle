@@ -1,110 +1,140 @@
-buildscript {
-    repositories {
-        maven { url = 'https://files.minecraftforge.net/maven' }
-        mavenCentral()
-        maven { url = "https://maven.parchmentmc.org" }
-        maven { url = 'https://repo.spongepowered.org/repository/maven-public/' }
-    }
-    dependencies {
-        classpath group: 'net.minecraftforge.gradle', name: 'ForgeGradle', version: '6.0.11', changing: true
-        classpath group: 'org.parchmentmc', name: 'librarian', version: '1.2.+'
-        classpath 'org.spongepowered:mixingradle:0.7-SNAPSHOT'
+plugins {
+    id 'java-library'
+    id 'eclipse'
+    id 'idea'
+    id 'maven-publish'
+    id 'net.neoforged.moddev' version '1.0.14'
+}
+
+tasks.named('wrapper', Wrapper).configure {
+    distributionType = Wrapper.DistributionType.BIN
+}
+
+abstract class TeaConDumpPathToGitHub extends DefaultTask {
+    @Input
+    abstract Property<String> getPublishName()
+    @InputFile
+    abstract RegularFileProperty getTargetFile()
+    @TaskAction
+    void dump() {
+        if (System.env.GITHUB_ACTIONS) {
+            File theFile = targetFile.getAsFile().get()
+
+            def outputFile = new File(System.env.GITHUB_OUTPUT)
+            // Use the env-specific line separator for maximally possible compatibility
+            def newLine = System.getProperty('line.separator')
+
+            // Write out new env variable for later usage
+            outputFile << newLine << "artifact_name=${theFile.getName()}"
+            outputFile << newLine << "artifact_publish_name=${publishName.get()}"
+            outputFile << newLine << "artifact_path=${theFile.absolutePath}"
+        }
     }
 }
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'org.parchmentmc.librarian.forgegradle'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
-apply plugin: 'org.spongepowered.mixin'
 
-version = '1.0.2'
+version = mod_version
 group = 'org.teacon'
-archivesBaseName = 'TeaChat-Forge-1.20'
-
-java.toolchain.languageVersion = JavaLanguageVersion.of(17)
-
-minecraft {
-    mappings channel: 'parchment', version: '2023.07.16-1.20.1'
-    runs {
-        client {
-            workingDirectory project.file('run')
-            property 'forge.logging.console.level', 'info'
-            property 'tea_chat.dev', 'true'
-            args '--username', 'Dev-###'
-            mods {
-                tea_chat {
-                    source sourceSets.main
-                }
-            }
-        }
-
-        server {
-            workingDirectory project.file('run_server')
-            property 'forge.logging.console.level', 'info'
-            mods {
-                tea_chat {
-                    source sourceSets.main
-                }
-            }
-        }
-    }
+base {
+    archivesName = 'TeaChat-NeoForge-1.21'
 }
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
-dependencies {
-    minecraft 'net.minecraftforge:forge:1.20.1-47.1.1'
+java.toolchain.languageVersion = JavaLanguageVersion.of(21)
 
+neoForge {
+    // Specify the version of NeoForge to use.
+    version = project.neo_version
+
+    parchment {
+        mappingsVersion = project.parchment_mappings_version
+        minecraftVersion = project.parchment_minecraft_version
+    }
+
+    runs {
+        client {
+            client()
+        }
+        server {
+            server()
+            programArgument '--nogui'
+        }
+    }
+
+    mods {
+        // define mod <-> source bindings
+        // these are used to tell the game which sources are for which mod
+        // mostly optional in a single mod project
+        // but multi mod projects should define one per mod
+        tea_chat {
+            sourceSet(sourceSets.main)
+        }
+    }
+
+    unitTest {
+        enable()
+        testedMod = mods.tea_chat
+    }
+}
+
+dependencies {
     // Yes you see this right, LuckPerms.
     // This is for our custom ContextCalculator support.
     compileOnly 'net.luckperms:api:5.4'
 
-    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
-
-    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation platform('org.junit:junit-bom:5.10.3')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    testImplementation 'org.mockito:mockito-core:5.4.0'
-    testImplementation 'org.mockito:mockito-junit-jupiter:5.4.0'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.12.0'
 }
 
 test {
     useJUnitPlatform()
 }
 
-mixin {}
+// This block of code expands all declared replace properties in the specified resource targets.
+// A missing property will result in an error. Properties are expanded using ${} Groovy notation.
+// When "copyIdeResources" is enabled, this will also run before the game launches in IDE environments.
+// See https://docs.gradle.org/current/dsl/org.gradle.language.jvm.tasks.ProcessResources.html
+tasks.withType(ProcessResources).configureEach {
+    var replaceProperties = [
+            minecraft_version      : minecraft_version,
+            minecraft_version_range: minecraft_version_range,
+            neo_version            : neo_version,
+            neo_version_range      : neo_version_range,
+            loader_version_range   : loader_version_range,
+            mod_id                 : mod_id,
+            mod_name               : mod_name,
+            mod_license            : mod_license,
+            mod_version            : mod_version,
+            mod_authors            : mod_authors,
+            mod_description        : mod_description
+    ]
+    inputs.properties replaceProperties
 
-jar {
-    manifest {
-        attributes([
-            "Specification-Title": "TeaChat",
-            "Specification-Vendor": "TeaConMC",
-            "Specification-Version": "1",
-            "Implementation-Title": project.name,
-            "Implementation-Version": "${version}",
-            "Implementation-Vendor": "TeaConMC"
-        ])
+    filesMatching(['META-INF/neoforge.mods.toml']) {
+        expand replaceProperties
     }
 }
 
-jar.finalizedBy('reobfJar')
-publish.dependsOn('reobfJar')
 publishing {
     publications {
         release(MavenPublication) {
             groupId = "org.teacon"
-            artifactId = "TeaChat-Forge-1.20"
+            artifactId = "TeaChat-NeoForge-1.21"
 
             artifact jar
             pom {
-                name = 'TeaChat for Minecraft 1.20'
+                name = 'TeaChat for Minecraft 1.21'
                 description = 'Add prefixes and suffixes from LuckPerms to player display names.'
                 url = 'https://github.com/teaconmc/TeaChat'
                 licenses {
                     license {
                         name = 'BSD-3-Clause'
-                        url = 'https://github.com/teaconmc/TeaChat/blob/1.20-forge/LICENSE'
+                        url = 'https://github.com/teaconmc/TeaChat/blob/1.21-NeoForge/LICENSE'
                     }
                 }
                 developers {
@@ -137,23 +167,22 @@ publishing {
     }
 }
 
-tasks.withType(PublishToMavenRepository) {
-    onlyIf {
-        System.env.ARCHIVE_ACCESS_KEY && System.env.ARCHIVE_SECRET_KEY
-    }
-}
-
-/**
- * A simple task to pass down the artifact name and path to other GitHub actions.
- */
-task("githubActionOutput") {
-    onlyIf {
+tasks.register("githubActionOutput", TeaConDumpPathToGitHub) { task ->
+    task.onlyIf {
         System.env.GITHUB_ACTIONS
     }
-    doLast {
-        def output = new File(System.env.GITHUB_OUTPUT)
-        def newLine = System.getProperty('line.separator')
-        output << newLine << "artifact_path=${jar.archiveFile.get().asFile.absolutePath}"
-        output << newLine << "artifact_name=${jar.archiveFileName.get()}"
+    task.getPublishName().set("${jar.archiveBaseName.get()}-${version}.jar")
+    task.getTargetFile().set(jar.archiveFile)
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = 'UTF-8' // Use the UTF-8 charset for Java compilation
+}
+
+// IDEA no longer automatically downloads sources/javadoc jars for dependencies, so we need to explicitly enable the behavior.
+idea {
+    module {
+        downloadSources = true
+        downloadJavadoc = true
     }
 }
