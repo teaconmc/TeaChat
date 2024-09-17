@@ -16,7 +16,7 @@ public class PlayerPrefixAndSuffixTest {
         final Component component = PlayerPrefixAndSuffix.parseLegacy(text);
         var siblings = component.getSiblings();
         Assertions.assertEquals(1, siblings.size());
-        var node1 = siblings.get(0);
+        var node1 = siblings.getFirst();
         Assertions.assertInstanceOf(PlainTextContents.LiteralContents.class, node1.getContents());
         Assertions.assertEquals(text, ((PlainTextContents.LiteralContents)node1.getContents()).text());
     }
@@ -27,7 +27,7 @@ public class PlayerPrefixAndSuffixTest {
         final Component component = PlayerPrefixAndSuffix.parseLegacy(text);
         var siblings = component.getSiblings();
         Assertions.assertEquals(1, siblings.size());
-        var node1 = siblings.get(0);
+        var node1 = siblings.getFirst();
         Assertions.assertInstanceOf(PlainTextContents.LiteralContents.class, node1.getContents());
         Assertions.assertEquals("Test text please ignore", ((PlainTextContents.LiteralContents)node1.getContents()).text());
         Assertions.assertEquals(TextColor.fromLegacyFormat(ChatFormatting.AQUA), node1.getStyle().getColor());
@@ -39,7 +39,7 @@ public class PlayerPrefixAndSuffixTest {
         final Component component = PlayerPrefixAndSuffix.parseLegacy(text);
         var siblings = component.getSiblings();
         Assertions.assertEquals(2, siblings.size());
-        var node1 = siblings.get(0);
+        var node1 = siblings.getFirst();
         Assertions.assertInstanceOf(PlainTextContents.LiteralContents.class, node1.getContents());
         Assertions.assertEquals("Test text ", ((PlainTextContents.LiteralContents)node1.getContents()).text());
         Assertions.assertEquals(TextColor.fromLegacyFormat(ChatFormatting.AQUA), node1.getStyle().getColor());
@@ -63,7 +63,7 @@ public class PlayerPrefixAndSuffixTest {
         final Component component = PlayerPrefixAndSuffix.parseLegacy(text);
         var siblings = component.getSiblings();
         Assertions.assertEquals(2, siblings.size());
-        var node1 = siblings.get(0);
+        var node1 = siblings.getFirst();
         Assertions.assertInstanceOf(PlainTextContents.LiteralContents.class, node1.getContents());
         Assertions.assertEquals("Test text ", ((PlainTextContents.LiteralContents)node1.getContents()).text());
         Assertions.assertEquals(TextColor.fromLegacyFormat(ChatFormatting.AQUA), node1.getStyle().getColor());
@@ -80,7 +80,7 @@ public class PlayerPrefixAndSuffixTest {
         final Component component = PlayerPrefixAndSuffix.parseLegacy(text);
         var siblings = component.getSiblings();
         Assertions.assertEquals(7, siblings.size());
-        var node1 = siblings.get(0);
+        var node1 = siblings.getFirst();
         Assertions.assertInstanceOf(PlainTextContents.LiteralContents.class, node1.getContents());
         Assertions.assertEquals("R", ((PlainTextContents.LiteralContents)node1.getContents()).text());
         Assertions.assertEquals(TextColor.fromLegacyFormat(ChatFormatting.RED), node1.getStyle().getColor());
@@ -116,7 +116,7 @@ public class PlayerPrefixAndSuffixTest {
         final Component component = PlayerPrefixAndSuffix.parseLegacy(text);
         var siblings = component.getSiblings();
         Assertions.assertEquals(3, siblings.size());
-        var node1 = siblings.get(0);
+        var node1 = siblings.getFirst();
         Assertions.assertInstanceOf(PlainTextContents.LiteralContents.class, node1.getContents());
         Assertions.assertEquals("Test ", ((PlainTextContents.LiteralContents)node1.getContents()).text());
         Assertions.assertEquals(TextColor.fromLegacyFormat(ChatFormatting.AQUA), node1.getStyle().getColor());
